@@ -1,42 +1,57 @@
-# Function to solve the fractional knapsack problem
-import time
-st=time.time()
-def fractional_knapsack(value, weight, capacity):
-    # Create a list of tuples with calculated value/weight ratios
-    val_per_weight = [(v / w, w, v) for v, w in zip(value, weight)]
-    
-    # Sort items by their value-to-weight ratio in descending order
-    val_per_weight.sort(reverse=True)
+class Item:
+    def __init__(self, weight, value):
+        self.weight = weight
+        self.value = value
+        self.cost = value / weight
 
-    total_value = 0  # Initialize total value
-    fractions = [0] * len(value)  # Initialize a list to keep track of fractions selected
+def fractional_knapsack(items, capacity):
+    items.sort(key=lambda x: x.cost, reverse=True)
 
-    for val_per_w, w, v in val_per_weight:
-        if capacity == 0:
+    total_value = 0
+    knapsack = [0] * len(items)
+
+    for i, item in enumerate(items):
+        if capacity >= item.weight:
+            knapsack[i] = 1
+            total_value += item.value
+            capacity -= item.weight
+        else:
+            fraction = capacity / item.weight
+            knapsack[i] = fraction
+            total_value += (item.value * fraction)
             break
 
-        # Take the whole item if capacity is greater than or equal to the item's weight
-        if w <= capacity:
-            fractions[val_per_weight.index((val_per_w, w, v))] = 1
-            total_value += v
-            capacity -= w
-        else:
-            # If capacity is less, take a fraction of the item
-            fraction = capacity / w
-            fractions[val_per_weight.index((val_per_w, w, v))] = fraction
-            total_value += v * fraction
-            capacity = 0
+    return total_value, knapsack
 
-    return total_value, fractions
+# Input from the user
+num_items = int(input("Enter the number of items: "))
+items = []
+for i in range(num_items):
+    weight = float(input(f"Enter the weight of item {i+1}: "))
+    value = float(input(f"Enter the value of item {i+1}: "))
+    items.append(Item(weight, value))
 
-# Example values and weights of items
-values = [60, 100, 120]
-weights = [10, 20, 30]
-knapsack_capacity = 50
+capacity = float(input("Enter the capacity of the knapsack: "))
 
-max_value, fractions_selected = fractional_knapsack(values, weights, knapsack_capacity)
+max_value, selected_items = fractional_knapsack(items, capacity)
 
-print("Maximum value (profit) that can be obtained:", max_value)
-print("Fractions of items to be selected:", fractions_selected)
-end=time.time()
-print("Time taken :", end-st, "seconds")
+# ... (Previous code remains unchanged)
+
+print(f"The maximum value that can be achieved is: {max_value}")
+print("\nSelected items:")
+print("Item\tValue\tFraction")
+for i, item in enumerate(selected_items):
+    if item != 0:
+        fraction = item if item != 1 else 'Full'
+        print(f"{i+1}\t{items[i].value}\t{fraction}")
+
+# Matrix form
+print("\nItems and Values in Matrix form:")
+print("Item\tWeight\tValue")
+for i, item in enumerate(items):
+    print(f"{i+1}\t{item.weight}\t{item.value}")
+    
+print("Item\tWeight\tValue")
+for i, item in enumerate(items):
+    if selected_items[i] != 0:
+        print(f"{i+1}\t{item.weight * selected_items[i]}\t{item.value * selected_items[i]}")
